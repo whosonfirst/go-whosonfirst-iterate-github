@@ -1,4 +1,4 @@
-# github.com/aaronland/go-json-query v0.0.2
+# github.com/aaronland/go-json-query v0.1.0
 github.com/aaronland/go-json-query
 # github.com/aaronland/go-roster v0.0.2
 github.com/aaronland/go-roster
@@ -7,32 +7,32 @@ github.com/golang/protobuf/proto
 # github.com/google/go-github v17.0.0+incompatible
 ## explicit
 github.com/google/go-github/github
-# github.com/google/go-querystring v1.0.0
+# github.com/google/go-querystring v1.1.0
 ## explicit
 github.com/google/go-querystring/query
-# github.com/tidwall/gjson v1.6.0
+# github.com/tidwall/gjson v1.7.5
 github.com/tidwall/gjson
-# github.com/tidwall/match v1.0.1
+# github.com/tidwall/match v1.0.3
 github.com/tidwall/match
-# github.com/tidwall/pretty v1.0.0
+# github.com/tidwall/pretty v1.1.0
 github.com/tidwall/pretty
-# github.com/whosonfirst/go-ioutil v0.0.1
+# github.com/whosonfirst/go-ioutil v1.0.0
 ## explicit
 github.com/whosonfirst/go-ioutil
 # github.com/whosonfirst/go-whosonfirst-crawl v0.2.1
 github.com/whosonfirst/go-whosonfirst-crawl
-# github.com/whosonfirst/go-whosonfirst-iterate v1.1.0
+# github.com/whosonfirst/go-whosonfirst-iterate/v2 v2.0.0
 ## explicit
-github.com/whosonfirst/go-whosonfirst-iterate/emitter
-github.com/whosonfirst/go-whosonfirst-iterate/filters
-github.com/whosonfirst/go-whosonfirst-iterate/iterator
-github.com/whosonfirst/go-whosonfirst-iterate/publisher
+github.com/whosonfirst/go-whosonfirst-iterate/v2/emitter
+github.com/whosonfirst/go-whosonfirst-iterate/v2/filters
+github.com/whosonfirst/go-whosonfirst-iterate/v2/iterator
+github.com/whosonfirst/go-whosonfirst-iterate/v2/publisher
 # github.com/whosonfirst/walk v0.0.1
 github.com/whosonfirst/walk
 # golang.org/x/net v0.0.0-20200822124328-c89045814202
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
-# golang.org/x/oauth2 v0.0.0-20210220000619-9bb904979d93
+# golang.org/x/oauth2 v0.0.0-20210819190943-2bc19b11175f
 ## explicit
 golang.org/x/oauth2
 golang.org/x/oauth2/internal

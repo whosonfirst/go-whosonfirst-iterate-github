@@ -14,23 +14,22 @@ package main
 import (
        "context"
        "flag"
-       "github.com/whosonfirst/go-whosonfirst-iterate/emitter"       
-       "github.com/whosonfirst/go-whosonfirst-iterate/indexer"
-       _ "github.com/whosonfirst/go-whosonfirst-iterate-github"                            
+       "github.com/whosonfirst/go-whosonfirst-iterate/emitter/v2"       
+       "github.com/whosonfirst/go-whosonfirst-iterate/indexer/v2"
+       _ "github.com/whosonfirst/go-whosonfirst-iterate-github/v2"                            
        "io"
        "log"
 )
 
 func main() {
 
-	emitter_uri := flag.String("emitter-uri", "repo://", "A valid whosonfirst/go-whosonfirst-iterate/emitter URI")
+	emitter_uri := flag.String("emitter-uri", "githubapi://", "A valid whosonfirst/go-whosonfirst-iterate/emitter URI")
 	
      	flag.Parse()
 
 	ctx := context.Background()
 
-	emitter_cb := func(ctx context.Context, fh io.ReadSeeker, args ...interface{}) error {
-		path, _ := index.PathForContext(ctx)
+	emitter_cb := func(ctx context.Context, path string, fh io.ReadSeeker, args ...interface{}) error {
 		log.Printf("Indexing %s\n", path)
 		return nil
 	}

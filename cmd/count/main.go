@@ -4,9 +4,9 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	_ "github.com/whosonfirst/go-whosonfirst-iterate-github"
-	"github.com/whosonfirst/go-whosonfirst-iterate/emitter"
-	"github.com/whosonfirst/go-whosonfirst-iterate/iterator"
+	_ "github.com/whosonfirst/go-whosonfirst-iterate-github/v2"
+	"github.com/whosonfirst/go-whosonfirst-iterate/v2/emitter"
+	"github.com/whosonfirst/go-whosonfirst-iterate/v2/iterator"
 	"io"
 	"log"
 	"os"
@@ -18,12 +18,12 @@ import (
 func main() {
 
 	valid_schemes := strings.Join(emitter.Schemes(), ",")
-	emitter_desc := fmt.Sprintf("A valid whosonfirst/go-whosonfirst-iterate/emitter URI. Supported emitter URI schemes are: %s", valid_schemes)
+	emitter_desc := fmt.Sprintf("A valid whosonfirst/go-whosonfirst-iterate/v2 URI. Supported emitter URI schemes are: %s", valid_schemes)
 
 	var emitter_uri = flag.String("emitter-uri", "", emitter_desc)
 
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Count files in one or more whosonfirst/go-whosonfirst-iterate/emitter sources.\n")
+		fmt.Fprintf(os.Stderr, "Count files in one or more whosonfirst/go-whosonfirst-iterate/v2 sources.\n")
 		fmt.Fprintf(os.Stderr, "Usage:\n\t %s [options] uri(N) uri(N)\n", os.Args[0])
 		fmt.Fprintf(os.Stderr, "Valid options are:\n\n")
 		flag.PrintDefaults()
@@ -36,13 +36,7 @@ func main() {
 	var count int64
 	count = 0
 
-	emitter_cb := func(ctx context.Context, fh io.ReadSeeker, args ...interface{}) error {
-
-		_, err := emitter.PathForContext(ctx)
-
-		if err != nil {
-			return err
-		}
+	emitter_cb := func(ctx context.Context, path string, fh io.ReadSeeker, args ...interface{}) error {
 
 		atomic.AddInt64(&count, 1)
 		return nil

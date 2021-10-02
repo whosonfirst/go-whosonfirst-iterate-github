@@ -5,8 +5,8 @@ import (
 	"errors"
 	"github.com/google/go-github/github"
 	"github.com/whosonfirst/go-ioutil"
-	"github.com/whosonfirst/go-whosonfirst-iterate/emitter"
-	"github.com/whosonfirst/go-whosonfirst-iterate/filters"
+	"github.com/whosonfirst/go-whosonfirst-iterate/v2/emitter"
+	"github.com/whosonfirst/go-whosonfirst-iterate/v2/filters"
 	"golang.org/x/oauth2"
 	_ "log"
 	"net/url"
@@ -237,6 +237,5 @@ func (em *GitHubAPIEmitter) walkFileContents(ctx context.Context, index_cb emitt
 		}
 	}
 
-	ctx = emitter.AssignPathContext(ctx, path)
-	return index_cb(ctx, fh)
+	return index_cb(ctx, path, fh)
 }
