@@ -12,18 +12,18 @@ import (
 
 	"github.com/google/go-github/v67/github"
 	"github.com/whosonfirst/go-ioutil"
-	"github.com/whosonfirst/go-whosonfirst-iterate/v2/emitter"
-	"github.com/whosonfirst/go-whosonfirst-iterate/v2/filters"
+	"github.com/whosonfirst/go-whosonfirst-iterate/v3/iterator"
+	"github.com/whosonfirst/go-whosonfirst-iterate/v3/filters"
 	"golang.org/x/oauth2"	
 )
 
 func init() {
 	ctx := context.Background()
-	emitter.RegisterEmitter(ctx, "githubapi", NewGitHubAPIEmitter)
+	iterator.RegisterIterator(ctx, "githubapi", NewGitHubAPIIterator)
 }
 
-type GitHubAPIEmitter struct {
-	emitter.Emitter
+type GitHubAPIIterator struct {
+	iterator.Iterator
 	owner string
 	repo  string
 	branch   string
@@ -33,7 +33,7 @@ type GitHubAPIEmitter struct {
 	filters  filters.Filters	
 }
 
-func NewGitHubAPIEmitter(ctx context.Context, uri string) (emitter.Emitter, error) {
+func NewGitHubAPIIterator(ctx context.Context, uri string) (iterator.Iterator, error) {
 
 	u, err := url.Parse(uri)
 
@@ -44,7 +44,7 @@ func NewGitHubAPIEmitter(ctx context.Context, uri string) (emitter.Emitter, erro
 	rate := time.Second / 10
 	throttle := time.Tick(rate)
 	
-	em := &GitHubAPIEmitter{
+	em := &GitHubAPIIterator{
 		throttle: throttle,
 	}
 
@@ -105,40 +105,67 @@ func NewGitHubAPIEmitter(ctx context.Context, uri string) (emitter.Emitter, erro
 	return em, nil
 }
 
-func (em *GitHubAPIEmitter) WalkURI(ctx context.Context, index_cb emitter.EmitterCallbackFunc, uri string) error {
+func (em *GitHubAPIIterator) Iterate(ctx context.Context, uris ...string) iter.Seq2[iterator.Record, error] {
 
-	// log.Printf("Walk %s/%s/%s", em.owner, em.repo, uri)
-	
-	select {
-	case <-ctx.Done():
-		return nil
-	default:
-		// pass
-	}
-
-	file_contents, dir_contents, _, err := em.client.Repositories.GetContents(ctx, em.owner, em.repo, uri, nil)
-
-	if err != nil {
-		return err
-	}
-
-	if file_contents != nil {
-		return em.walkFileContents(ctx, index_cb, file_contents)
-	}
-
-	if dir_contents != nil {
-
-		if em.concurrent {
-			return em.walkDirectoryContentsConcurrently(ctx, index_cb, dir_contents)
-		} else {
-			return em.walkDirectoryContents(ctx, index_cb, dir_contents)
+	return func(yield func(Record, error) bool) {
+		for _, uri := range uris {
+			for r, err := em.iterate(ctx, uri) {
+				yield(r, err)
+			}
 		}
 	}
-
-	return nil
 }
 
-func (em *GitHubAPIEmitter) walkDirectoryContents(ctx context.Context, index_cb emitter.EmitterCallbackFunc, contents []*github.RepositoryContent) error {
+func (em *GitHubAPIIterator) iterate(ctx context.Context, uri string) iter.Seq2[iterator.Record, error] {
+
+	return func(yield func(Record, error) bool) {
+
+		// log.Printf("Walk %s/%s/%s", em.owner, em.repo, uri)
+		
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
+			// pass
+		}
+		
+		file_contents, dir_contents, _, err := em.client.Repositories.GetContents(ctx, em.owner, em.repo, uri, nil)
+		
+		if err != nil {
+			return yield(nil, err)
+			return
+		}
+
+		if file_contents != nil {
+			return em.walkFileContents(ctx, index_cb, file_contents)
+		}
+		
+		if dir_contents != nil {
+
+			var walk_iter iter.Seq2[iterator.Record, error]
+			
+			if em.concurrent {
+				for r, err := range em.walkDirectoryContentsConcurrently(ctx, dir_contents) {
+					yield(r, err)
+				}
+			} else {
+				walk_rec, err := em.walkDirectoryContents(ctx, dir_contents)
+
+				if err != nil {
+					yield(nil, err)
+				}
+
+				if walk_rec != nil {
+					yield(walk_rec, nil)
+				}
+			}
+
+		}
+		
+	}
+}
+
+func (em *GitHubAPIIterator) walkDirectoryContents(ctx context.Context, index_cb iterator.IteratorCallbackFunc, contents []*github.RepositoryContent) error {
 
 	for _, e := range contents {
 
@@ -152,7 +179,7 @@ func (em *GitHubAPIEmitter) walkDirectoryContents(ctx context.Context, index_cb 
 	return nil
 }
 
-func (em *GitHubAPIEmitter) walkDirectoryContentsConcurrently(ctx context.Context, index_cb emitter.EmitterCallbackFunc, contents []*github.RepositoryContent) error {
+func (em *GitHubAPIIterator) walkDirectoryContentsConcurrently(ctx context.Context, index_cb iterator.IteratorCallbackFunc, contents []*github.RepositoryContent) error {
 
 	remaining := len(contents)
 
@@ -193,7 +220,7 @@ func (em *GitHubAPIEmitter) walkDirectoryContentsConcurrently(ctx context.Contex
 	return nil
 }
 
-func (em *GitHubAPIEmitter) walkFileContents(ctx context.Context, index_cb emitter.EmitterCallbackFunc, contents *github.RepositoryContent) error {
+func (em *GitHubAPIIterator) walkFileContents(ctx context.Context, index_cb iterator.IteratorCallbackFunc, contents *github.RepositoryContent) (iterator.Record, error) {
 
 	path := *contents.Path
 	name := *contents.Name
@@ -202,13 +229,13 @@ func (em *GitHubAPIEmitter) walkFileContents(ctx context.Context, index_cb emitt
 	case ".geojson":
 		// continue
 	default:
-		return nil
+		return nil, nil
 	}
 
 	body, err := contents.GetContent()
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	r := strings.NewReader(body)
@@ -216,7 +243,7 @@ func (em *GitHubAPIEmitter) walkFileContents(ctx context.Context, index_cb emitt
 	fh, err := ioutil.NewReadSeekCloser(r)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if em.filters != nil {
@@ -224,19 +251,20 @@ func (em *GitHubAPIEmitter) walkFileContents(ctx context.Context, index_cb emitt
 		ok, err := em.filters.Apply(ctx, fh)
 
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		if !ok {
-			return nil
+			return nil, nil
 		}
 
 		_, err = fh.Seek(0, 0)
 
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	return index_cb(ctx, path, fh)
+	iter_rec := iterator.NewRecord(path, fh)
+	return iter_rec, nil)
 }

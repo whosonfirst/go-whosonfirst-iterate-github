@@ -1,4 +1,4 @@
-module github.com/whosonfirst/go-whosonfirst-iterate-github/v2
+module github.com/whosonfirst/go-whosonfirst-iterate-github/v3
 
 go 1.23.3
 
