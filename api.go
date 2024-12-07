@@ -3,17 +3,18 @@ package github
 import (
 	"context"
 	"errors"
-	"github.com/google/go-github/github"
-	"github.com/whosonfirst/go-ioutil"
-	"github.com/whosonfirst/go-whosonfirst-iterate/v2/emitter"
-	"github.com/whosonfirst/go-whosonfirst-iterate/v2/filters"
-	"golang.org/x/oauth2"
 	_ "log"
 	"net/url"
 	"path/filepath"
 	"strings"
 	"strconv"
 	"time"
+
+	"github.com/google/go-github/v67/github"
+	"github.com/whosonfirst/go-ioutil"
+	"github.com/whosonfirst/go-whosonfirst-iterate/v2/emitter"
+	"github.com/whosonfirst/go-whosonfirst-iterate/v2/filters"
+	"golang.org/x/oauth2"	
 )
 
 func init() {
