@@ -14,11 +14,13 @@ package main
 import (
        "context"
        "flag"
-       "github.com/whosonfirst/go-whosonfirst-iterate/emitter/v2"       
-       "github.com/whosonfirst/go-whosonfirst-iterate/indexer/v2"
-       _ "github.com/whosonfirst/go-whosonfirst-iterate-github/v2"                            
        "io"
        "log"
+
+       _ "github.com/whosonfirst/go-whosonfirst-iterate-github/v2"
+       
+       "github.com/whosonfirst/go-whosonfirst-iterate/emitter/v2"       
+       "github.com/whosonfirst/go-whosonfirst-iterate/indexer/v2"
 )
 
 func main() {

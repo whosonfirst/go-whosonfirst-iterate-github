@@ -3,17 +3,18 @@ package github
 import (
 	"context"
 	"errors"
+	_ "log"
+	"net/url"
+	"path/filepath"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/google/go-github/github"
 	"github.com/whosonfirst/go-ioutil"
 	"github.com/whosonfirst/go-whosonfirst-iterate/v2/emitter"
 	"github.com/whosonfirst/go-whosonfirst-iterate/v2/filters"
 	"golang.org/x/oauth2"
-	_ "log"
-	"net/url"
-	"path/filepath"
-	"strings"
-	"strconv"
-	"time"
 )
 
 func init() {
@@ -23,13 +24,13 @@ func init() {
 
 type GitHubAPIEmitter struct {
 	emitter.Emitter
-	owner string
-	repo  string
-	branch   string
+	owner      string
+	repo       string
+	branch     string
 	concurrent bool
-	client   *github.Client
-	throttle <-chan time.Time
-	filters  filters.Filters	
+	client     *github.Client
+	throttle   <-chan time.Time
+	filters    filters.Filters
 }
 
 func NewGitHubAPIEmitter(ctx context.Context, uri string) (emitter.Emitter, error) {
@@ -42,7 +43,7 @@ func NewGitHubAPIEmitter(ctx context.Context, uri string) (emitter.Emitter, erro
 
 	rate := time.Second / 10
 	throttle := time.Tick(rate)
-	
+
 	em := &GitHubAPIEmitter{
 		throttle: throttle,
 	}
@@ -64,7 +65,7 @@ func NewGitHubAPIEmitter(ctx context.Context, uri string) (emitter.Emitter, erro
 	token := q.Get("access_token")
 	branch := q.Get("branch")
 	concurrent := q.Get("concurrent")
-	
+
 	if token == "" {
 		return nil, errors.New("Missing access token")
 	}
@@ -83,7 +84,7 @@ func NewGitHubAPIEmitter(ctx context.Context, uri string) (emitter.Emitter, erro
 
 		em.concurrent = c
 	}
-	
+
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},
 	)
@@ -107,7 +108,7 @@ func NewGitHubAPIEmitter(ctx context.Context, uri string) (emitter.Emitter, erro
 func (em *GitHubAPIEmitter) WalkURI(ctx context.Context, index_cb emitter.EmitterCallbackFunc, uri string) error {
 
 	// log.Printf("Walk %s/%s/%s", em.owner, em.repo, uri)
-	
+
 	select {
 	case <-ctx.Done():
 		return nil
@@ -142,7 +143,7 @@ func (em *GitHubAPIEmitter) walkDirectoryContents(ctx context.Context, index_cb 
 	for _, e := range contents {
 
 		err := em.WalkURI(ctx, index_cb, *e.Path)
-		
+
 		if err != nil {
 			return err
 		}
@@ -174,7 +175,7 @@ func (em *GitHubAPIEmitter) walkDirectoryContentsConcurrently(ctx context.Contex
 			if err != nil {
 				err_ch <- err
 			}
-			
+
 		}(e)
 	}
 
