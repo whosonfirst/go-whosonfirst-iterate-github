@@ -4,7 +4,7 @@ Go package for iterating through a set of Who's On First documents stored in a G
 
 ## Important
 
-Documentation for this package is incomplete and will be updated shortly.
+This package has been deprecated and is no longer maintained. All of the functionality in this package has been migrated in to [whosonfirst/go-whosonfirst-git/v3](https://github.com/whosonfirst/go-whosonfirst-iterate-git).
 
 ## Example
 
